@@ -138,16 +138,13 @@ func (d *classData) getWordsProb(words []string) (prob float64) {
 // should be at least 2 in number and unique, or this method will
 // panic.
 func NewClassifier(classes ...string) (c *Classifier) {
-	n := len(classes)
 
 	// check uniqueness
 	check := make(map[string]bool)
 	for _, class := range classes {
 		check[class] = true
 	}
-	if len(check) != n {
-		panic("classes must be unique")
-	}
+
 	// create the classifier
 	c = &Classifier{
 		Classes: classes,
