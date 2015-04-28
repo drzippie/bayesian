@@ -75,25 +75,23 @@ const defaultProb = 0.00000000001
 //        Bad Class = "Bad
 //    )
 //
-// Class values should be unique.
-type Class string
 
 // Classifier implements the Naive Bayesian Classifier.
 type Classifier struct {
-	Classes []Class
+	Classes []string
 	learned int // docs learned
 	seen    int // docs seen
-	datas   map[Class]*classData
+	datas   map[string]*classData
 }
 
 // serializableClassifier represents a container for
 // Classifier objects whose fields are modifiable by
 // reflection and are therefore writeable by gob.
 type serializableClassifier struct {
-	Classes []Class
+	Classes []string
 	Learned int
 	Seen    int
-	Datas   map[Class]*classData
+	Datas   map[string]*classData
 }
 
 // classData holds the frequency data for words in a
@@ -139,16 +137,11 @@ func (d *classData) getWordsProb(words []string) (prob float64) {
 // NewClassifier returns a new classifier. The classes the provided
 // should be at least 2 in number and unique, or this method will
 // panic.
-func NewClassifier(classes ...Class) (c *Classifier) {
+func NewClassifier(classes ...string) (c *Classifier) {
 	n := len(classes)
 
-	// check size
-	if n < 2 {
-		panic("provide at least two classes")
-	}
-
 	// check uniqueness
-	check := make(map[Class]bool, n)
+	check := make(map[string]bool)
 	for _, class := range classes {
 		check[class] = true
 	}
@@ -158,7 +151,7 @@ func NewClassifier(classes ...Class) (c *Classifier) {
 	// create the classifier
 	c = &Classifier{
 		Classes: classes,
-		datas:   make(map[Class]*classData, n),
+		datas:   make(map[string]*classData),
 	}
 	for _, class := range classes {
 		c.datas[class] = newClassData()
@@ -208,6 +201,15 @@ func (c *Classifier) getPriors() (priors []float64) {
 	return
 }
 
+// Add a new Class to the Classifier
+
+func (c *Classifier) AddOption(cl string) {
+	newClasses := append(c.Classes, cl)
+	c.Classes = newClasses
+	c.datas[cl] = newClassData()
+	return
+}
+
 // Learned returns the number of documents ever learned
 // in the lifetime of this classifier.
 func (c *Classifier) Learned() int {
@@ -233,7 +235,7 @@ func (c *Classifier) WordCount() (result []int) {
 
 // Learn will accept new training documents for
 // supervised learning.
-func (c *Classifier) Learn(document []string, which Class) {
+func (c *Classifier) Learn(document []string, which string) {
 	data := c.datas[which]
 	for _, word := range document {
 		data.Freqs[word]++
@@ -390,7 +392,7 @@ func (c *Classifier) WordFrequencies(words []string) (freqMatrix [][]float64) {
 
 // WordsByClass returns a map of words and thgeir probability of
 // appearing in the given class.
-func (c *Classifier) WordsByClass(class Class) (freqMap map[string]float64) {
+func (c *Classifier) WordsByClass(class string) (freqMap map[string]float64) {
 	freqMap = make(map[string]float64)
 	for word, cnt := range c.datas[class].Freqs {
 		freqMap[word] = float64(cnt) / float64(c.datas[class].Total)
@@ -416,7 +418,7 @@ func (c *Classifier) WriteClassesToFile(rootPath string) (err error) {
 	return
 }
 
-func (c *Classifier) WriteClassToFile(name Class, rootPath string) (err error) {
+func (c *Classifier) WriteClassToFile(name string, rootPath string) (err error) {
 	data := c.datas[name]
 	fileName := filepath.Join(rootPath, string(name))
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0644)
@@ -437,7 +439,7 @@ func (c *Classifier) WriteTo(w io.Writer) (err error) {
 
 // ReadClassFromFile load an existing classData from
 // file.
-func (c *Classifier) ReadClassFromFile(class Class, location string) (err error) {
+func (c *Classifier) ReadClassFromFile(class string, location string) (err error) {
 	fileName := filepath.Join(location, string(class))
 	file, err := os.Open(fileName)
 
