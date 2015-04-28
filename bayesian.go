@@ -134,9 +134,7 @@ func (d *classData) getWordsProb(words []string) (prob float64) {
 	return
 }
 
-// NewClassifier returns a new classifier. The classes the provided
-// should be at least 2 in number and unique, or this method will
-// panic.
+// NewClassifier returns a new classifier.
 func NewClassifier(classes ...string) (c *Classifier) {
 
 	// check uniqueness
