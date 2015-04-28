@@ -1,4 +1,7 @@
 ## Naive Bayesian Classification
+
+[![Build Status](https://travis-ci.org/drzippie/bayesian.svg)](https://travis-ci.org/drzippie/bayesian)
+
 Perform naive Bayesian classification into an arbitrary number of classes on sets of strings.
 ------------
  
