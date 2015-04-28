@@ -4,9 +4,9 @@ import "testing"
 import "fmt"
 import "os"
 
-const (
-	Good Class = "good"
-	Bad  Class = "bad"
+var (
+	Good = "good"
+	Bad  = "bad"
 )
 
 func Assert(t *testing.T, condition bool, args ...interface{}) {
